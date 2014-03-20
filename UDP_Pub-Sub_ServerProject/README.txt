@@ -13,7 +13,7 @@ QUIT "clientID" groupName"
 -quit a group
 
 SHUTDOWN
--shutdown the server is on localhost
+-shutdown the server if on localhost
 
 SEND "clientID" "groupname" "message"
 -send a message from clientID to groupname.
