@@ -19,7 +19,7 @@ SEND "clientID" "groupname" "message"
 -send a message from clientID to groupname.
 
 POLL "clientID"
--check for queued messages. NOT CURRENTLY WORKING
+-check for queued messages. returns NO_MORE_MESSAGES if queue is empty
 
 ACK "clientID"
--respond to message sent from POLL request. NOT CURRENTLY WORKING
+-respond to message sent from POLL request. 

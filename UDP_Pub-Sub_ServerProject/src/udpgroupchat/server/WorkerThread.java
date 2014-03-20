@@ -13,8 +13,6 @@ public class WorkerThread extends Thread {
 
 	private DatagramPacket rxPacket;
 	private DatagramSocket socket;
-	Timer resend = new Timer();
-	ResendTask rt;
 
 	public WorkerThread(DatagramPacket packet, DatagramSocket socket) {
 		this.rxPacket = packet;
@@ -88,6 +86,7 @@ public class WorkerThread extends Thread {
 			onQuitRequest(payload);
 			return;
 		}
+		
 		//
 		// implement other request handlers here...
 		//
@@ -126,14 +125,14 @@ public class WorkerThread extends Thread {
 			return;
 		}
 		
-//		rt.cancel();
+		ClientEndPoint c = Server.clientEndPoints.get(id);
 		
-//		try {
-//			send("TIMER STOPPED\n", this.rxPacket.getAddress(),
-//					this.rxPacket.getPort());
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
+		if(c.hasMessagesPending())
+		{
+			c.removeOldestMessage();
+		}
+		
+
 	}
 	private void onQuitRequest(String payload)
 	{
@@ -212,15 +211,24 @@ public class WorkerThread extends Thread {
 		}
 		
 		ClientEndPoint c = Server.clientEndPoints.get(id);
-		String curMessage = "";
+		String message = "";
 		if(c.hasMessagesPending())
 		{
-			curMessage = c.getOldestMessage();
+			message = c.getOldestMessage();
+		}
+		else
+		{
+			message = "NO_MORE_MESSAGES\n";
+		}
+		
+		try {
+			send(message, this.rxPacket.getAddress(),
+					this.rxPacket.getPort());
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 		
 		
-		rt = new ResendTask(socket,curMessage,this.rxPacket.getAddress(),this.rxPacket.getPort());
-		resend.schedule(rt,Server.WAIT_TIME*1000,Server.WAIT_TIME*1000);
 	}
 	private void onJoinRequest(String payload)
 	{
@@ -345,7 +353,7 @@ public class WorkerThread extends Thread {
 		
 		for (ClientEndPoint clientEndPoint : Server.serverGroups.get(dest)) {
 			try {
-				send("MESSAGE from CLIENT " + id + ": " + message + "\n", clientEndPoint.address,
+				send("MESSAGE from CLIENT " + id + " to " + dest + ": " + message + "\n", clientEndPoint.address,
 						clientEndPoint.port);
 			} catch (IOException e) {
 				clientEndPoint.addMessageToQueue(message);

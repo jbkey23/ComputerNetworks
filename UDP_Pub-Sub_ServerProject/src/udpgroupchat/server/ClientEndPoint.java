@@ -29,7 +29,12 @@ public class ClientEndPoint {
 	
 	public String getOldestMessage()
 	{
-		return messageQueue.poll();
+		return messageQueue.element();
+	}
+	
+	public void removeOldestMessage()
+	{
+		messageQueue.removeFirst();
 	}
 	
 	public int getID()
