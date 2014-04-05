@@ -97,7 +97,7 @@ public class MainActivity extends Activity {
 		{
 			try {
 				socket = new DatagramSocket();
-				serverSocketAddress = new InetSocketAddress(LOCAL_ADDRESS, SERVER_PORT);
+				serverSocketAddress = new InetSocketAddress(SERVER_ADDRESS, SERVER_PORT);
 			} catch (SocketException e) {
 				e.printStackTrace();
 			}
