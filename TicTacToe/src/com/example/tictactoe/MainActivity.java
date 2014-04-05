@@ -6,6 +6,9 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -14,7 +17,9 @@ import android.os.Message;
 import android.os.Messenger;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
@@ -25,7 +30,7 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
-	public final String LOCAL_ADDRESS = "10.67.84.219";
+	public final String LOCAL_ADDRESS = "10.0.0.3";
 	public final String SERVER_ADDRESS = "54.186.235.124";
 	public final int SERVER_PORT = 20000;
 	
@@ -40,15 +45,25 @@ public class MainActivity extends Activity {
 	private Button pos2_1;
 	private Button pos2_2;
 	private TextView statusText;
-	private boolean player1_turn;
+	private boolean myTurn;
+	private boolean player1;
 	private boolean gameOver;
 	private boolean draw;
 	private int buttonClicks;
 	public static final int PUT_LETTER = 1;
 	public static final int REGISTERED = 2;
+	public static final int ERROR = 3;
+	public static final int JOINED = 4;
+	public static final int READY = 5;
+	public static final int NOT_READY = 6;
+	public static final int TOO_MANY = 7;
 	
 	private int clientID = -1;
 	private String groupName;
+	private boolean readyToStart = false;
+	
+	private ArrayList<String> fullGroups = new ArrayList<String>();
+	private ProgressDialog ringProgressDialog = null;
 	
 	public static MyHandler handler = null;
 	
@@ -73,7 +88,7 @@ public class MainActivity extends Activity {
 		pos2_1 = (Button)findViewById(R.id.button21);
 		pos2_2 = (Button)findViewById(R.id.button22);
 		statusText = (TextView)findViewById(R.id.statusText);
-		player1_turn = true;
+		player1 = false;
 		gameOver = false;
 		draw = false;
 		buttonClicks = 0;
@@ -123,21 +138,96 @@ public class MainActivity extends Activity {
  				switch(msg.what)
  				{
  				case PUT_LETTER:
+ 					Log.d("Handled", (String)msg.obj);
  					activity.putLetter((String)msg.obj);
  					break;
  				case REGISTERED:
+ 					Log.d("Handled", (String)msg.obj);
  					activity.setID((String)msg.obj);
+ 					break;
+ 				case JOINED:
+ 					Log.d("Handled", "joined");
+ 					activity.showJoinStatus(true);
+ 					break;
+ 				case ERROR:
+ 					Log.d("Handled", "error");
+ 					activity.showError();
+ 					break;
+ 				case READY:
+ 					Log.d("Handled", "ready");
+ 					activity.showReadyStatus(true);
+ 					break;
+ 				case NOT_READY:
+ 					Log.d("Handled", "not ready");
+ 					activity.showReadyStatus(false);
+ 					break;
+ 				case TOO_MANY:
+ 					Log.d("Handled", "too many");
+ 					activity.showJoinStatus(false);
  					break;
  				}
  			}
  		}
  	}
 	
+	
+	
+	public void showReadyStatus(boolean ready)
+	{
+		if(ready)
+		{
+			readyToStart = true;
+			if(ringProgressDialog != null)
+				ringProgressDialog.dismiss();
+			if(player1)
+			{
+				myTurn = true;
+				setBoardStatus(true);
+			}
+			else
+			{
+				setBoardStatus(false);
+			}
+			
+			if (myTurn)
+				statusText.setText("Your turn");
+			else if (!myTurn)
+				statusText.setText("Opponent's turn");
+			
+			setGameStatus();
+		}
+		else
+		{
+			player1 = true;
+			//Toast.makeText(this, "No opponent available. Game will start when opponent joins.", Toast.LENGTH_LONG).show();
+			ringProgressDialog = ProgressDialog.show(MainActivity.this, "Please wait ...", "Waiting for opponent to join game ...", true);
+		}
+	}
+	
+	public void showError()
+	{
+		Toast.makeText(this, "Error occured!!", Toast.LENGTH_SHORT).show();
+	}
+	
+	public void showJoinStatus(boolean successful)
+	{
+		if(successful)
+		{
+			Toast.makeText(this, "Joined group: " + groupName, Toast.LENGTH_SHORT).show();
+			sendToServer("LEGAL " + groupName);
+		}
+		else
+		{
+			Toast.makeText(this, "Group is full. Please enter a different groupname.", Toast.LENGTH_LONG).show();
+			fullGroups.add(groupName);
+		}
+	}
+	
 	public void setID(String message)
 	{
 		String [] tokens = message.split(":");
 		
-		clientID = Integer.parseInt(tokens[1]);
+		clientID = Integer.parseInt(tokens[1].trim());
 		
 		Toast.makeText(this, "Client ID is: " + clientID, Toast.LENGTH_SHORT).show();
 	}
@@ -169,121 +259,176 @@ public class MainActivity extends Activity {
 	
 	public void putLetter(String msg)
 	{
-		String [] tokens = msg.split(":");
+		//if(!myTurn)
+			//setBoardStatus(true);
 		
-		String [] tokens2 = tokens[1].split(" ");
+		
+		
+		String [] tokens = msg.split(": ");
+		
+		String [] tokens2 = tokens[1].trim().split(" ");
 		
 		String pos = tokens2[0];
 		String letter = tokens2[1];
 		
-		if(pos == "00")
+		if(pos.equals("00"))
 		{
-			if(pos0_0.getText() == "")
+			if(pos0_0.getText().equals(""))
 			{
 				pos0_0.setText(letter);
 				pos0_0.setClickable(false);
+				setBoardStatus(true);
+				buttonClicks++;
 			}
+			updateStatusText();
 		}
-		else if(pos == "01")
+		else if(pos.equals("01"))
 		{
-			if(pos0_1.getText() == "")
+			if(pos0_1.getText().equals(""))
 			{
 				pos0_1.setText(letter);
 				pos0_1.setClickable(false);
+				setBoardStatus(true);
+				buttonClicks++;
 			}
+			updateStatusText();
 		}
-		else if(pos == "02")
+		else if(pos.equals("02"))
 		{
-			if(pos0_2.getText() == "")
+			if(pos0_2.getText().equals(""))
 			{
 				pos0_2.setText(letter);
 				pos0_2.setClickable(false);
+				setBoardStatus(true);
+				buttonClicks++;
 			}
+			updateStatusText();
 		}
-		else if(pos == "10")
+		else if(pos.equals("10"))
 		{
-			if(pos1_0.getText() == "")
+			if(pos1_0.getText().equals(""))
 			{
 				pos1_0.setText(letter);
 				pos1_0.setClickable(false);
+				setBoardStatus(true);
+				buttonClicks++;
 			}
+			updateStatusText();
 		}
-		else if(pos == "11")
+		else if(pos.equals("11"))
 		{
-			if(pos1_1.getText() == "")
+			if(pos1_1.getText().equals(""))
 			{
 				pos1_1.setText(letter);
 				pos1_1.setClickable(false);
+				setBoardStatus(true);
+				buttonClicks++;
 			}
+			updateStatusText();
 		}
-		else if(pos == "12")
+		else if(pos.equals("12"))
 		{
-			if(pos1_2.getText() == "")
+			if(pos1_2.getText().equals(""))
 			{
 				pos1_2.setText(letter);
 				pos1_2.setClickable(false);
+				setBoardStatus(true);
+				buttonClicks++;
 			}
+			updateStatusText();
 		}
-		else if(pos == "20")
+		else if(pos.equals("20"))
 		{
-			if(pos2_0.getText() == "")
+			if(pos2_0.getText().equals(""))
 			{
 				pos2_0.setText(letter);
 				pos2_0.setClickable(false);
+				setBoardStatus(true);
+				buttonClicks++;
 			}
+			updateStatusText();
 		}
-		else if(pos == "21")
+		else if(pos.equals("21"))
 		{
-			if(pos2_1.getText() == "")
+			if(pos2_1.getText().equals(""))
 			{
 				pos2_1.setText(letter);
 				pos2_1.setClickable(false);
+				setBoardStatus(true);
+				buttonClicks++;
 			}
+			updateStatusText();
 		}
-		else if(pos == "22")
+		else if(pos.equals("22"))
 		{
-			if(pos2_2.getText() == "")
+			if(pos2_2.getText().equals(""))
 			{
 				pos2_2.setText(letter);
 				pos2_2.setClickable(false);
+				setBoardStatus(true);
+				buttonClicks++;
 			}
+			updateStatusText();
 		}
+		else if(pos.equals("GAME") && letter.equals("OVER"))
+		{
+			gameOver = true;
+			if(tokens2[2].equals("DRAW"))
+				draw = true;
+			
+			setBoardStatus(false);
+			displayWinner();
+		}
+	}
+	
+	public void updateStatusText()
+	{
+		if(statusText.getText().equals("Your turn"))
+			statusText.setText("Opponent's turn");
+		else
+			statusText.setText("Your turn");
 	}
 	public void newGame(View v)
 	{
 		groupNamePrompt();
 		
-		newGameButton.setEnabled(false);
-		pos0_0.setEnabled(true);
-		pos0_0.setClickable(true);
-		pos0_0.setText("");
-		pos0_1.setEnabled(true);
-		pos0_1.setClickable(true);
-		pos0_1.setText("");
-		pos0_2.setEnabled(true);
-		pos0_2.setClickable(true);
-		pos0_2.setText("");
-		pos1_0.setEnabled(true);
-		pos1_0.setClickable(true);
-		pos1_0.setText("");
-		pos1_1.setEnabled(true);
-		pos1_1.setClickable(true);
-		pos1_1.setText("");
-		pos1_2.setEnabled(true);
-		pos1_2.setClickable(true);
-		pos1_2.setText("");
-		pos2_0.setEnabled(true);
-		pos2_0.setClickable(true);
-		pos2_0.setText("");
-		pos2_1.setEnabled(true);
-		pos2_1.setClickable(true);
-		pos2_1.setText("");
-		pos2_2.setEnabled(true);
-		pos2_2.setClickable(true);
-		pos2_2.setText("");
+		while(fullGroups.contains(groupName))
+		{
+			groupNamePrompt();
+		}
 		
-		player1_turn = true;
-		setGameStatus();
+		
+			newGameButton.setEnabled(false);
+		/*	pos0_0.setEnabled(true);
+			pos0_0.setClickable(true);
+			pos0_0.setText("");
+			pos0_1.setEnabled(true);
+			pos0_1.setClickable(true);
+			pos0_1.setText("");
+			pos0_2.setEnabled(true);
+			pos0_2.setClickable(true);
+			pos0_2.setText("");
+			pos1_0.setEnabled(true);
+			pos1_0.setClickable(true);
+			pos1_0.setText("");
+			pos1_1.setEnabled(true);
+			pos1_1.setClickable(true);
+			pos1_1.setText("");
+			pos1_2.setEnabled(true);
+			pos1_2.setClickable(true);
+			pos1_2.setText("");
+			pos2_0.setEnabled(true);
+			pos2_0.setClickable(true);
+			pos2_0.setText("");
+			pos2_1.setEnabled(true);
+			pos2_1.setClickable(true);
+			pos2_1.setText("");
+			pos2_2.setEnabled(true);
+			pos2_2.setClickable(true);
+			pos2_2.setText("");*/
+
+			//setGameStatus();
+		
 	}
 	
 	public void groupNamePrompt()
@@ -306,31 +451,65 @@ public class MainActivity extends Activity {
 				.setPositiveButton("OK", new DialogInterface.OnClickListener() {
 							public void onClick(DialogInterface dialog, int id) {
 								// get user input and set it to result
-								String groupname = input.getText().toString();
 								
-								String message = "JOIN " + clientID + " " + groupname + "\n";
+								groupName = input.getText().toString();
+								
+								String message = "JOIN " + clientID + " " + groupName + "\n";
 								
 								sendToServer(message);
 							}
-						})
-				.setNegativeButton("Cancel",
+						});
+				/*.setNegativeButton("Cancel",
 						new DialogInterface.OnClickListener() {
 							public void onClick(DialogInterface dialog,	int id) {
+								buttonCancelled = true;
 								dialog.cancel();
 							}
-						});
+						});*/
 
 		// create an alert dialog
 		AlertDialog alertD = alertDialogBuilder.create();
 
 		alertD.show();
 	}
+	
+	public void displayWinner()
+	{
+		String winner = "";
+		
+		/*if (player1 && myTurn)
+		{
+			winner = "Player 1 Wins!";
+		}
+		else if (player1 && !myTurn)
+		{
+			winner = "Player 2 Wins!";
+		}
+		else if (!player1 && myTurn)
+		{
+			winner = "Player 2 Wins!";
+		}
+		else if (!player1 && !myTurn)
+		{
+			winner = "Player 1 Wins!";
+		}*/
+		
+		if(myTurn)
+			winner = "You Win!";
+		else
+			winner = "Opponent Wins!";
+		
+		if(draw)
+			winner = "Draw!";
+		
+		statusText.setText("GAME OVER!! " + winner);
+	}
 	public void setGameStatus()
 	{
 		if(gameOver)
 		{
-			String winner;
-			if(player1_turn)
+			/*String winner;
+			if(player1 && myTurn)
 				winner = "Player 1 Wins!";
 			else
 				winner = "Player 2 Wins!";
@@ -338,8 +517,17 @@ public class MainActivity extends Activity {
 			if(draw)
 				winner = "Draw!";
 			
-			statusText.setText("GAME OVER!! " + winner);
-			newGameButton.setEnabled(true);
+			
+			
+			statusText.setText("GAME OVER!! " + winner);*/
+			if(draw)
+				sendToServer("SEND " + clientID + " " + groupName + " GAME OVER DRAW");
+			else
+				sendToServer("SEND " + clientID + " " + groupName + " GAME OVER NO");
+			
+			displayWinner();
+			
+			newGameButton.setEnabled(false);
 			pos0_0.setEnabled(false);
 			pos0_1.setEnabled(false);
 			pos0_2.setEnabled(false);
@@ -354,14 +542,25 @@ public class MainActivity extends Activity {
 			draw = false;
 			gameOver = !gameOver;
 		}
-		else if (player1_turn)
-		{
-			statusText.setText("Player 1's turn");
-		}
-		else
-		{
-			statusText.setText("Player 2's turn");
-		}
+		/*else if (myTurn)
+			statusText.setText("Your turn");
+		else if (!myTurn)
+			statusText.setText("Opponent's turn");*/
+		
+		//setBoardStatus(myTurn);
+	}
+	
+	public void setBoardStatus(boolean myTurn)
+	{
+		pos0_0.setEnabled(myTurn);
+		pos0_1.setEnabled(myTurn);
+		pos0_2.setEnabled(myTurn);
+		pos1_0.setEnabled(myTurn);
+		pos1_1.setEnabled(myTurn);
+		pos1_2.setEnabled(myTurn);
+		pos2_0.setEnabled(myTurn);
+		pos2_1.setEnabled(myTurn);
+		pos2_2.setEnabled(myTurn);
 	}
 	
 	public void gameBoardPressed(View v)
@@ -371,7 +570,7 @@ public class MainActivity extends Activity {
 		String letter;
 		String message = "SEND " + clientID + " " + groupName + " ";
 		
-		if(player1_turn)
+		if(player1)
 		{
 			letter = "X";
 		}
@@ -435,6 +634,8 @@ public class MainActivity extends Activity {
 			pos2_2.setClickable(false);
 		}
 		
+		sendToServer(message);
+		
 		if(gameOver())
 		{
 			gameOver = true;
@@ -442,8 +643,8 @@ public class MainActivity extends Activity {
 			return;
 		}
 		
-		sendToServer(message);
-		player1_turn = !player1_turn;
+		myTurn = !myTurn;
+		setBoardStatus(false);
 		setGameStatus();
 	}
 	

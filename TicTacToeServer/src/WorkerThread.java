@@ -82,6 +82,12 @@ public class WorkerThread extends Thread {
 			return;
 		}
 		
+		if (payload.startsWith("LEGAL"))
+		{
+			onLegalRequest(payload);
+			return;
+		}
+		
 		if (payload.startsWith("QUIT"))
 		{
 			onQuitRequest(payload);
@@ -105,6 +111,36 @@ public class WorkerThread extends Thread {
 		this.socket.send(txPacket);
 	}
 
+	private void onLegalRequest(String payload)
+	{
+		System.out.println("Server received LEGAL request: " + payload);
+		
+		String [] tokens = payload.split(" ");
+		String groupName = tokens[1].toUpperCase();
+		
+		if(Server.serverGroups.get(groupName).size() == 2)
+		{
+			for (ClientEndPoint clientEndPoint : Server.serverGroups.get(groupName)) {
+				try {
+					send("READY\n", clientEndPoint.address, clientEndPoint.port);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		
+			return;
+		}
+		else
+		{
+			try {
+				send("NOT READY\n", this.rxPacket.getAddress(),
+						this.rxPacket.getPort());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			return;
+		}
+	}
 	
 	private void onAckRequest(String payload)
 	{
@@ -223,7 +259,7 @@ public class WorkerThread extends Thread {
 		}
 		
 		try {
-			send(message, this.rxPacket.getAddress(),
+			send("POLL " + message, this.rxPacket.getAddress(),
 					this.rxPacket.getPort());
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -233,6 +269,8 @@ public class WorkerThread extends Thread {
 	}
 	private void onJoinRequest(String payload)
 	{
+		System.out.println("Server received JOIN request: " + payload);
+		
 		String [] tokens = payload.split(" ");
 		String groupName = "";
 		int id;
@@ -256,7 +294,19 @@ public class WorkerThread extends Thread {
 		
 		if(Server.serverGroups.containsKey(groupName))
 		{
-			Server.serverGroups.get(groupName).add(Server.clientEndPoints.get(id));
+			if(Server.serverGroups.get(groupName).size() <= 1)
+			{
+				Server.serverGroups.get(groupName).add(Server.clientEndPoints.get(id));
+			}
+			else
+			{
+				try {
+					send("TOO MANY\n" + groupName + "\n", this.rxPacket.getAddress(),
+							this.rxPacket.getPort());
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
 		}
 		else
 		{
@@ -286,7 +336,8 @@ public class WorkerThread extends Thread {
 		// to client objects
 		Server.clientEndPoints.put(c.getID(),c);
 	
-
+		System.out.println("Server received REGISTER request: " + payload);
+		
 		// tell client we're OK
 		try {
 			System.out.println("REGISTER successful");
@@ -352,6 +403,8 @@ public class WorkerThread extends Thread {
 		int id = Integer.parseInt(tokens[1]);
 		String dest = tokens[2].toUpperCase();
 		String message = tokens[3];
+		
+		System.out.println("Server received SEND request: " + payload);
 		
 		for (ClientEndPoint clientEndPoint : Server.serverGroups.get(dest)) {
 			try {
