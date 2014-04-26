@@ -1,0 +1,317 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin" >
+
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:background="#FFFFFFFF"
+        android:gravity="center"
+        android:paddingTop="15dp" >
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="0dp"
+            android:paddingTop="0dp"
+            android:src="@drawable/android_hangman_gallows" />
+
+        <ImageView
+            android:id="@+id/head"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="108dp"
+            android:paddingTop="23dp"
+            android:src="@drawable/android_hangman_head" />
+
+        <ImageView
+            android:id="@+id/body"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="120dp"
+            android:paddingTop="53dp"
+            android:src="@drawable/android_hangman_body" />
+
+        <ImageView
+            android:id="@+id/arm1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="100dp"
+            android:paddingTop="60dp"
+            android:src="@drawable/android_hangman_arm1" />
+
+        <ImageView
+            android:id="@+id/arm2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="120dp"
+            android:paddingTop="60dp"
+            android:src="@drawable/android_hangman_arm2" />
+
+        <ImageView
+            android:id="@+id/leg1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="101dp"
+            android:paddingTop="90dp"
+            android:src="@drawable/android_hangman_leg1" />
+
+        <ImageView
+            android:id="@+id/leg2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="121dp"
+            android:paddingTop="90dp"
+            android:src="@drawable/android_hangman_leg2" />
+    </RelativeLayout>
+
+    <LinearLayout
+        android:id="@+id/Letters"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:background="#FFFFFFFF"
+        android:paddingTop="100dp" >
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/letterButtonsLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingTop="100dp" >
+
+        <LinearLayout
+            android:id="@+id/row1_letters"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" >
+
+            <Button
+                android:id="@+id/a"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="A"
+                android:onClick="letterPressed" />
+
+            <Button
+                android:id="@+id/b"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="B"
+                android:onClick="letterPressed" />
+
+            <Button
+                android:id="@+id/c"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C"
+                android:onClick="letterPressed" />
+
+            <Button
+                android:id="@+id/d"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="D"
+                android:onClick="letterPressed" />
+
+            <Button
+                android:id="@+id/e"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="E"
+                android:onClick="letterPressed" />
+
+            <Button
+                android:id="@+id/f"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="F"
+                android:onClick="letterPressed" />
+
+            <Button
+                android:id="@+id/g"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="G"
+                android:onClick="letterPressed" />
+
+            <Button
+                android:id="@+id/h"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="H"
+                android:onClick="letterPressed" />
+
+            <Button
+                android:id="@+id/i"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="I"
+                android:onClick="letterPressed" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/row2_letters"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" >
+
+            <Button
+                android:id="@+id/j"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="J"
+                android:onClick="letterPressed" />
+
+            <Button
+                android:id="@+id/k"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="K"
+                android:onClick="letterPressed" />
+
+            <Button
+                android:id="@+id/l"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="L"
+                android:onClick="letterPressed" />
+
+            <Button
+                android:id="@+id/m"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="M"
+                android:onClick="letterPressed" />
+
+            <Button
+                android:id="@+id/n"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N"
+                android:onClick="letterPressed" />
+
+            <Button
+                android:id="@+id/o"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="O"
+                android:onClick="letterPressed" />
+
+            <Button
+                android:id="@+id/p"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="P"
+                android:onClick="letterPressed" />
+
+            <Button
+                android:id="@+id/q"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Q"
+                android:onClick="letterPressed" />
+
+            <Button
+                android:id="@+id/r"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="R"
+                android:onClick="letterPressed" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/row3_letters"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" >
+
+            <Button
+                android:id="@+id/s"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="S"
+                android:onClick="letterPressed" />
+
+            <Button
+                android:id="@+id/t"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="T"
+                android:onClick="letterPressed" />
+
+            <Button
+                android:id="@+id/u"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="U"
+                android:onClick="letterPressed" />
+
+            <Button
+                android:id="@+id/v"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="V"
+                android:onClick="letterPressed" />
+
+            <Button
+                android:id="@+id/w"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="W"
+                android:onClick="letterPressed" />
+
+            <Button
+                android:id="@+id/x"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="X"
+                android:onClick="letterPressed" />
+
+            <Button
+                android:id="@+id/y"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Y"
+                android:onClick="letterPressed" />
+
+            <Button
+                android:id="@+id/z"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Z"
+                android:onClick="letterPressed" />
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>
